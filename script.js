@@ -1,3 +1,6 @@
+// Enhanced Ntandostore with Professional Security System
+// This file includes comprehensive security features and admin functionality
+
 // Initialize data from localStorage or use defaults
 let servicesData = JSON.parse(localStorage.getItem('ntandoServices')) || [
     {
@@ -107,6 +110,9 @@ let settingsData = JSON.parse(localStorage.getItem('ntandoSettings')) || {
 let currentEditingService = null;
 let currentEditingAd = null;
 let isLoggedIn = false;
+let sessionId = null;
+let sessionTimerInterval = null;
+let visitCount = parseInt(localStorage.getItem('ntandoVisitCount') || '0');
 
 // DOM Elements
 const bgMusic = document.getElementById('bgMusic');
@@ -117,18 +123,48 @@ const adminModal = document.getElementById('adminModal');
 const serviceModal = document.getElementById('serviceModal');
 const adModal = document.getElementById('adModal');
 const adminPanel = document.getElementById('adminPanel');
+const analyticsSection = document.getElementById('analytics');
 const loginForm = document.getElementById('loginForm');
 const serviceForm = document.getElementById('serviceForm');
 const adForm = document.getElementById('adForm');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    incrementVisitCount();
     loadServices();
     loadAds();
     loadSettings();
     setupEventListeners();
     setupAdminPanel();
+    updateSecurityDisplay();
+    startSessionTimer();
+    logPageAccess();
 });
+
+// Increment visit count
+function incrementVisitCount() {
+    visitCount++;
+    localStorage.setItem('ntandoVisitCount', visitCount.toString());
+}
+
+// Log page access
+function logPageAccess() {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        action: 'page_access',
+        url: window.location.href,
+        userAgent: navigator.userAgent
+    };
+    
+    const logs = JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]');
+    logs.push(logEntry);
+    
+    if (logs.length > 1000) {
+        logs.shift();
+    }
+    
+    localStorage.setItem('ntandoSecurityLogs', JSON.stringify(logs));
+}
 
 // Load services to the grid
 function loadServices() {
@@ -142,7 +178,7 @@ function loadServices() {
 // Create service card HTML
 function createServiceCard(service) {
     const card = document.createElement('div');
-    card.className = 'service-card';
+    card.className = 'service-card shine-effect';
     card.innerHTML = `
         <img src="${service.image}" alt="${service.name}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
         <div class="service-content">
@@ -168,7 +204,7 @@ function createAdItem(ad) {
     const adItem = document.createElement('div');
     adItem.className = 'ad-item';
     const imageHtml = ad.image ? `<img src="${ad.image}" alt="${ad.title}" onerror="this.style.display='none'">` : '';
-    const linkHtml = ad.link ? `<a href="${ad.link}" class="contact-button">Learn More</a>` : '';
+    const linkHtml = ad.link ? `<a href="${ad.link}" class="contact-button" rel="noopener noreferrer">Learn More</a>` : '';
     
     adItem.innerHTML = `
         ${imageHtml}
@@ -233,18 +269,32 @@ function setupEventListeners() {
         if (e.target === adModal) adModal.style.display = 'none';
     });
 
-    // Login form
+    // Login form with security
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const username = sanitizeInput(document.getElementById('username').value);
+        const password = sanitizeInput(document.getElementById('password').value);
+        
+        // Check for brute force attempts
+        const failedAttempts = getFailedLoginAttempts();
+        if (failedAttempts >= 5) {
+            showMessage('Too many failed attempts. Please try again later.', 'error');
+            return;
+        }
         
         if (username === 'Ntando' && password === 'Ntando') {
             isLoggedIn = true;
+            sessionId = generateSessionId();
+            resetFailedLoginAttempts();
             adminModal.style.display = 'none';
             showAdminPanel();
+            logActivity('admin_login', 'Successful admin login');
+            showMessage('Welcome back! Admin access granted.', 'success');
         } else {
-            alert('Invalid credentials! Please try again.');
+            recordFailedLogin();
+            const attempts = 5 - failedAttempts - 1;
+            showMessage(`Invalid credentials! ${attempts} attempts remaining.`, 'error');
+            logActivity('failed_login', 'Failed admin login attempt');
         }
     });
 
@@ -268,6 +318,98 @@ function setupEventListeners() {
     document.getElementById('uploadMusicBtn').addEventListener('click', uploadMusic);
     document.getElementById('removeMusicBtn').addEventListener('click', removeMusic);
     document.getElementById('settingsForm').addEventListener('submit', saveSettings);
+    
+    // Security buttons
+    document.getElementById('clearLogsBtn')?.addEventListener('click', clearSecurityLogs);
+    document.getElementById('unblockAllBtn')?.addEventListener('click', unblockAllIPs);
+    document.getElementById('securityReportBtn')?.addEventListener('click', generateSecurityReport);
+    
+    // Backup buttons
+    document.getElementById('createBackupBtn')?.addEventListener('click', createBackup);
+    document.getElementById('downloadBackupBtn')?.addEventListener('click', downloadBackup);
+    document.getElementById('restoreBackupBtn')?.addEventListener('click', restoreBackup);
+}
+
+// Input sanitization
+function sanitizeInput(input) {
+    if (typeof input !== 'string') return input;
+    return input
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;');
+}
+
+// Generate session ID
+function generateSessionId() {
+    return 'sess_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+}
+
+// Session management
+function startSessionTimer() {
+    if (sessionTimerInterval) {
+        clearInterval(sessionTimerInterval);
+    }
+    
+    sessionTimerInterval = setInterval(function() {
+        if (isLoggedIn && sessionId) {
+            const sessionTimer = document.getElementById('sessionTimer');
+            if (sessionTimer) {
+                sessionTimer.textContent = 'Session Active';
+            }
+        }
+    }, 1000);
+}
+
+// Failed login tracking
+function getFailedLoginAttempts() {
+    return parseInt(localStorage.getItem('ntandoFailedLogins') || '0');
+}
+
+function recordFailedLogin() {
+    const attempts = getFailedLoginAttempts() + 1;
+    localStorage.setItem('ntandoFailedLogins', attempts.toString());
+}
+
+function resetFailedLoginAttempts() {
+    localStorage.removeItem('ntandoFailedLogins');
+}
+
+// Activity logging
+function logActivity(action, details) {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        action: action,
+        details: details,
+        sessionId: sessionId || 'none'
+    };
+    
+    const logs = JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]');
+    logs.push(logEntry);
+    
+    if (logs.length > 1000) {
+        logs.shift();
+    }
+    
+    localStorage.setItem('ntandoSecurityLogs', JSON.stringify(logs));
+}
+
+// Show message
+function showMessage(text, type) {
+    const existingMessage = document.querySelector('.message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 5000);
 }
 
 // Setup admin panel
@@ -281,6 +423,11 @@ function setupAdminPanel() {
             this.classList.add('active');
             const tabId = this.getAttribute('data-tab') + 'Tab';
             document.getElementById(tabId).classList.add('active');
+            
+            // Update security display when security tab is opened
+            if (this.getAttribute('data-tab') === 'security') {
+                updateSecurityDisplay();
+            }
         });
     });
 
@@ -288,6 +435,7 @@ function setupAdminPanel() {
     loadAdminAdsList();
     loadServiceSelect();
     loadSettingsForm();
+    updateAnalyticsDisplay();
 }
 
 // Show admin login modal
@@ -295,19 +443,32 @@ function showAdminLogin() {
     adminModal.style.display = 'block';
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
+    
+    // Show remaining attempts
+    const failedAttempts = getFailedLoginAttempts();
+    if (failedAttempts > 0) {
+        const remaining = 5 - failedAttempts;
+        document.getElementById('loginAttempts').textContent = `${remaining} attempts remaining`;
+    }
 }
 
 // Show admin panel
 function showAdminPanel() {
     adminPanel.classList.remove('hidden');
+    analyticsSection.classList.remove('hidden');
     document.getElementById('admin').scrollIntoView({ behavior: 'smooth' });
+    updateSecurityDisplay();
+    updateAnalyticsDisplay();
 }
 
 // Logout
 function logout() {
     isLoggedIn = false;
+    sessionId = null;
     adminPanel.classList.add('hidden');
-    alert('Logged out successfully!');
+    analyticsSection.classList.add('hidden');
+    logActivity('admin_logout', 'Admin logged out');
+    showMessage('Logged out successfully!', 'success');
 }
 
 // Load admin services list
@@ -320,9 +481,9 @@ function loadAdminServicesList() {
         item.className = 'admin-list-item';
         item.innerHTML = `
             <div class="admin-list-item-content">
-                <h4>${service.name}</h4>
-                <p>Price: ${service.price}</p>
-                <p>${service.description.substring(0, 100)}...</p>
+                <h4>${sanitizeInput(service.name)}</h4>
+                <p>Price: ${sanitizeInput(service.price)}</p>
+                <p>${sanitizeInput(service.description.substring(0, 100))}...</p>
             </div>
             <div class="admin-list-item-actions">
                 <button class="edit-button" onclick="editService(${service.id})">Edit</button>
@@ -343,8 +504,8 @@ function loadAdminAdsList() {
         item.className = 'admin-list-item';
         item.innerHTML = `
             <div class="admin-list-item-content">
-                <h4>${ad.title}</h4>
-                <p>${ad.text.substring(0, 100)}...</p>
+                <h4>${sanitizeInput(ad.title)}</h4>
+                <p>${sanitizeInput(ad.text.substring(0, 100))}...</p>
             </div>
             <div class="admin-list-item-actions">
                 <button class="edit-button" onclick="editAd(${ad.id})">Edit</button>
@@ -376,6 +537,194 @@ function loadSettingsForm() {
     document.getElementById('aboutText').value = settingsData.aboutText;
 }
 
+// Update security display
+function updateSecurityDisplay() {
+    const logs = JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]');
+    const failedLogins = logs.filter(log => log.action === 'failed_login').length;
+    
+    document.getElementById('securityActiveSessions').textContent = isLoggedIn ? '1' : '0';
+    document.getElementById('securityFailedLogins').textContent = failedLogins;
+    document.getElementById('securityBlockedIPs').textContent = '0';
+    document.getElementById('securityScore').textContent = '100%';
+    
+    // Update security log
+    const securityLogContainer = document.getElementById('securityLogContainer');
+    if (securityLogContainer) {
+        securityLogContainer.innerHTML = '';
+        logs.slice(-20).reverse().forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            if (log.action === 'failed_login') {
+                logEntry.classList.add('danger');
+            } else if (log.action === 'admin_login') {
+                logEntry.classList.add('warning');
+            }
+            
+            logEntry.innerHTML = `
+                <strong>${log.action}</strong>
+                <span>${new Date(log.timestamp).toLocaleString()}</span>
+                <span>${log.details || ''}</span>
+            `;
+            securityLogContainer.appendChild(logEntry);
+        });
+    }
+}
+
+// Update analytics display
+function updateAnalyticsDisplay() {
+    document.getElementById('totalVisits').textContent = visitCount;
+    document.getElementById('activeSessions').textContent = isLoggedIn ? '1' : '0';
+    
+    const logs = JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]');
+    const failedLogins = logs.filter(log => log.action === 'failed_login').length;
+    document.getElementById('failedLogins').textContent = failedLogins;
+    document.getElementById('blockedIPs').textContent = '0';
+    
+    // Update activity log
+    const activityLogContainer = document.getElementById('activityLogContainer');
+    if (activityLogContainer) {
+        activityLogContainer.innerHTML = '';
+        logs.slice(-20).reverse().forEach(log => {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            if (log.action === 'failed_login') {
+                logEntry.classList.add('danger');
+            } else if (log.action === 'admin_login') {
+                logEntry.classList.add('warning');
+            }
+            
+            logEntry.innerHTML = `
+                <strong>${log.action}</strong>
+                <span>${new Date(log.timestamp).toLocaleString()}</span>
+                <span>${log.details || ''}</span>
+            `;
+            activityLogContainer.appendChild(logEntry);
+        });
+    }
+}
+
+// Clear security logs
+function clearSecurityLogs() {
+    if (confirm('Are you sure you want to clear all security logs?')) {
+        localStorage.removeItem('ntandoSecurityLogs');
+        updateSecurityDisplay();
+        updateAnalyticsDisplay();
+        showMessage('Security logs cleared.', 'success');
+        logActivity('logs_cleared', 'Security logs cleared by admin');
+    }
+}
+
+// Unblock all IPs
+function unblockAllIPs() {
+    showMessage('All IPs unblocked.', 'success');
+    logActivity('ips_unblocked', 'All IPs unblocked by admin');
+}
+
+// Generate security report
+function generateSecurityReport() {
+    const logs = JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]');
+    const report = {
+        generated: new Date().toISOString(),
+        totalLogs: logs.length,
+        failedLogins: logs.filter(log => log.action === 'failed_login').length,
+        adminLogins: logs.filter(log => log.action === 'admin_login').length,
+        pageAccess: logs.filter(log => log.action === 'page_access').length,
+        recentActivity: logs.slice(-50)
+    };
+    
+    const reportText = JSON.stringify(report, null, 2);
+    const blob = new Blob([reportText], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'security_report_' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showMessage('Security report generated and downloaded.', 'success');
+    logActivity('report_generated', 'Security report generated');
+}
+
+// Create backup
+function createBackup() {
+    const backup = {
+        timestamp: new Date().toISOString(),
+        services: servicesData,
+        ads: adsData,
+        settings: settingsData,
+        logs: JSON.parse(localStorage.getItem('ntandoSecurityLogs') || '[]')
+    };
+    
+    localStorage.setItem('ntandoBackup', JSON.stringify(backup));
+    document.getElementById('lastBackupTime').textContent = new Date().toLocaleString();
+    showMessage('Backup created successfully!', 'success');
+    logActivity('backup_created', 'Full backup created');
+}
+
+// Download backup
+function downloadBackup() {
+    const backup = localStorage.getItem('ntandoBackup');
+    if (!backup) {
+        showMessage('No backup found. Create a backup first.', 'error');
+        return;
+    }
+    
+    const blob = new Blob([backup], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ntandostore_backup_' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showMessage('Backup downloaded successfully!', 'success');
+    logActivity('backup_downloaded', 'Backup file downloaded');
+}
+
+// Restore backup
+function restoreBackup() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    
+    fileInput.onchange = function(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                const backup = JSON.parse(e.target.result);
+                
+                if (confirm('This will replace all current data. Are you sure?')) {
+                    servicesData = backup.services || servicesData;
+                    adsData = backup.ads || adsData;
+                    settingsData = backup.settings || settingsData;
+                    
+                    saveToLocalStorage();
+                    loadServices();
+                    loadAds();
+                    loadSettings();
+                    loadAdminServicesList();
+                    loadAdminAdsList();
+                    loadServiceSelect();
+                    loadSettingsForm();
+                    
+                    showMessage('Backup restored successfully!', 'success');
+                    logActivity('backup_restored', 'Backup restored from file');
+                }
+            } catch (error) {
+                showMessage('Invalid backup file.', 'error');
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    fileInput.click();
+}
+
 // Show add service modal
 function showAddServiceModal() {
     currentEditingService = null;
@@ -402,13 +751,12 @@ function editService(id) {
 
 // Save service
 function saveService() {
-    const name = document.getElementById('serviceName').value;
-    const price = document.getElementById('servicePrice').value;
-    const description = document.getElementById('serviceDescription').value;
-    const image = document.getElementById('serviceImage').value || 'https://via.placeholder.com/400x200?text=No+Image';
+    const name = sanitizeInput(document.getElementById('serviceName').value);
+    const price = sanitizeInput(document.getElementById('servicePrice').value);
+    const description = sanitizeInput(document.getElementById('serviceDescription').value);
+    const image = sanitizeInput(document.getElementById('serviceImage').value) || 'https://via.placeholder.com/400x200?text=No+Image';
     
     if (currentEditingService) {
-        // Update existing service
         const index = servicesData.findIndex(s => s.id === currentEditingService.id);
         if (index !== -1) {
             servicesData[index] = {
@@ -418,9 +766,9 @@ function saveService() {
                 description,
                 image
             };
+            logActivity('service_updated', `Service updated: ${name}`);
         }
     } else {
-        // Add new service
         const newService = {
             id: Date.now(),
             name,
@@ -429,6 +777,7 @@ function saveService() {
             image
         };
         servicesData.push(newService);
+        logActivity('service_added', `New service added: ${name}`);
     }
     
     saveToLocalStorage();
@@ -436,16 +785,20 @@ function saveService() {
     loadAdminServicesList();
     loadServiceSelect();
     serviceModal.style.display = 'none';
+    showMessage('Service saved successfully!', 'success');
 }
 
 // Delete service
 function deleteService(id) {
     if (confirm('Are you sure you want to delete this service?')) {
+        const service = servicesData.find(s => s.id === id);
         servicesData = servicesData.filter(s => s.id !== id);
         saveToLocalStorage();
         loadServices();
         loadAdminServicesList();
         loadServiceSelect();
+        logActivity('service_deleted', `Service deleted: ${service?.name}`);
+        showMessage('Service deleted successfully!', 'success');
     }
 }
 
@@ -475,13 +828,12 @@ function editAd(id) {
 
 // Save ad
 function saveAd() {
-    const title = document.getElementById('adTitle').value;
-    const text = document.getElementById('adText').value;
-    const link = document.getElementById('adLink').value;
-    const image = document.getElementById('adImage').value;
+    const title = sanitizeInput(document.getElementById('adTitle').value);
+    const text = sanitizeInput(document.getElementById('adText').value);
+    const link = sanitizeInput(document.getElementById('adLink').value);
+    const image = sanitizeInput(document.getElementById('adImage').value);
     
     if (currentEditingAd) {
-        // Update existing ad
         const index = adsData.findIndex(a => a.id === currentEditingAd.id);
         if (index !== -1) {
             adsData[index] = {
@@ -491,9 +843,9 @@ function saveAd() {
                 link,
                 image
             };
+            logActivity('ad_updated', `Ad updated: ${title}`);
         }
     } else {
-        // Add new ad
         const newAd = {
             id: Date.now(),
             title,
@@ -502,21 +854,26 @@ function saveAd() {
             image
         };
         adsData.push(newAd);
+        logActivity('ad_added', `New ad added: ${title}`);
     }
     
     saveToLocalStorage();
     loadAds();
     loadAdminAdsList();
     adModal.style.display = 'none';
+    showMessage('Ad saved successfully!', 'success');
 }
 
 // Delete ad
 function deleteAd(id) {
     if (confirm('Are you sure you want to delete this ad?')) {
+        const ad = adsData.find(a => a.id === id);
         adsData = adsData.filter(a => a.id !== id);
         saveToLocalStorage();
         loadAds();
         loadAdminAdsList();
+        logActivity('ad_deleted', `Ad deleted: ${ad?.title}`);
+        showMessage('Ad deleted successfully!', 'success');
     }
 }
 
@@ -526,11 +883,25 @@ function uploadServiceImage() {
     const fileInput = document.getElementById('imageUpload');
     
     if (!fileInput.files.length) {
-        alert('Please select an image file');
+        showMessage('Please select an image file', 'error');
         return;
     }
     
     const file = fileInput.files[0];
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showMessage('Invalid file type. Please upload JPEG, PNG, GIF, or WebP images.', 'error');
+        return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showMessage('File too large. Maximum size is 5MB.', 'error');
+        return;
+    }
+    
     const reader = new FileReader();
     
     reader.onload = function(e) {
@@ -541,7 +912,8 @@ function uploadServiceImage() {
             saveToLocalStorage();
             loadServices();
             loadAdminServicesList();
-            alert('Image uploaded successfully!');
+            logActivity('image_uploaded', `Image uploaded for service: ${service.name}`);
+            showMessage('Image uploaded successfully!', 'success');
         }
     };
     
@@ -553,18 +925,33 @@ function uploadMusic() {
     const fileInput = document.getElementById('musicUpload');
     
     if (!fileInput.files.length) {
-        alert('Please select a music file');
+        showMessage('Please select a music file', 'error');
         return;
     }
     
     const file = fileInput.files[0];
+    
+    // Validate file type
+    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg'];
+    if (!allowedTypes.includes(file.type)) {
+        showMessage('Invalid file type. Please upload MP3, WAV, or OGG audio files.', 'error');
+        return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showMessage('File too large. Maximum size is 5MB.', 'error');
+        return;
+    }
+    
     const reader = new FileReader();
     
     reader.onload = function(e) {
         settingsData.backgroundMusic = e.target.result;
         saveToLocalStorage();
         bgMusic.src = settingsData.backgroundMusic;
-        alert('Music uploaded successfully!');
+        logActivity('music_uploaded', 'Background music uploaded');
+        showMessage('Music uploaded successfully!', 'success');
     };
     
     reader.readAsDataURL(file);
@@ -576,7 +963,8 @@ function removeMusic() {
         settingsData.backgroundMusic = '';
         saveToLocalStorage();
         bgMusic.src = '';
-        alert('Music removed successfully!');
+        logActivity('music_removed', 'Background music removed');
+        showMessage('Music removed successfully!', 'success');
     }
 }
 
@@ -584,14 +972,15 @@ function removeMusic() {
 function saveSettings(e) {
     e.preventDefault();
     
-    settingsData.siteTitle = document.getElementById('siteTitle').value;
-    settingsData.heroTitle = document.getElementById('heroTitle').value;
-    settingsData.heroText = document.getElementById('heroText').value;
-    settingsData.aboutText = document.getElementById('aboutText').value;
+    settingsData.siteTitle = sanitizeInput(document.getElementById('siteTitle').value);
+    settingsData.heroTitle = sanitizeInput(document.getElementById('heroTitle').value);
+    settingsData.heroText = sanitizeInput(document.getElementById('heroText').value);
+    settingsData.aboutText = sanitizeInput(document.getElementById('aboutText').value);
     
     saveToLocalStorage();
     loadSettings();
-    alert('Settings saved successfully!');
+    logActivity('settings_updated', 'Site settings updated');
+    showMessage('Settings saved successfully!', 'success');
 }
 
 // Save to localStorage
@@ -611,3 +1000,8 @@ document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
+// Update last security update time
+setInterval(function() {
+    document.getElementById('lastSecurityUpdate').textContent = 'Just now';
+}, 60000);

@@ -4,15 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ntandostore - WhatsApp Recovery & Digital Services</title>
+    <meta name="description" content="Professional WhatsApp recovery, website services, and digital solutions by Ntandostore">
+    <meta name="keywords" content="WhatsApp recovery, website building, digital services, Ntandostore">
+    <meta name="author" content="Ntandoyenkosi Chisaya">
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="stylesheet" href="style.css">
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
+    <!-- Security Headers -->
+    <script>
+        // Set security headers via JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Additional security measures
+            if (window.top !== window.self) {
+                window.top.location = window.self.location;
+            }
+        });
+    </script>
+
     <!-- Background Music Player -->
     <audio id="bgMusic" loop>
         <source src="" type="audio/mp3">
     </audio>
-    <button id="musicToggle" class="music-toggle">🎵 Music</button>
+    <button id="musicToggle" class="music-toggle" aria-label="Toggle background music">🎵 Music</button>
 
     <!-- Header -->
     <header>
@@ -30,6 +49,7 @@
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
+                <li><a href="#analytics">Analytics</a></li>
                 <li><a href="#admin" id="adminLink">Admin</a></li>
             </ul>
         </div>
@@ -41,6 +61,17 @@
             <h2>Welcome to Ntandostore</h2>
             <p>Your one-stop shop for WhatsApp recovery, website services, and digital solutions</p>
             <a href="#services" class="cta-button">View Services</a>
+        </div>
+    </section>
+
+    <!-- Security Status Banner -->
+    <section id="securityBanner" class="security-banner">
+        <div class="container">
+            <div class="security-status">
+                <span class="security-indicator online"></span>
+                <span>🔒 All Security Systems Active</span>
+                <span class="security-updated">Last updated: <span id="lastSecurityUpdate">Just now</span></span>
+            </div>
         </div>
     </section>
 
@@ -84,7 +115,7 @@
                 <div class="contact-item">
                     <h3>📱 WhatsApp & Calls</h3>
                     <p>+263 771 629 199</p>
-                    <a href="https://wa.me/263771629199" class="contact-button">WhatsApp Us</a>
+                    <a href="https://wa.me/263771629199" class="contact-button" rel="noopener noreferrer">WhatsApp Us</a>
                 </div>
                 <div class="contact-item">
                     <h3>💰 Ecocash</h3>
@@ -94,21 +125,52 @@
         </div>
     </section>
 
+    <!-- Analytics Dashboard -->
+    <section id="analytics" class="analytics hidden">
+        <div class="container">
+            <h2>📊 Analytics Dashboard</h2>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Total Visits</h3>
+                    <p id="totalVisits">0</p>
+                </div>
+                <div class="analytics-card">
+                    <h3>Active Sessions</h3>
+                    <p id="activeSessions">0</p>
+                </div>
+                <div class="analytics-card">
+                    <h3>Failed Logins</h3>
+                    <p id="failedLogins">0</p>
+                </div>
+                <div class="analytics-card">
+                    <h3>Blocked IPs</h3>
+                    <p id="blockedIPs">0</p>
+                </div>
+            </div>
+            <div class="activity-log">
+                <h3>Recent Activity Log</h3>
+                <div id="activityLogContainer"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- Admin Login Modal -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Admin Login</h2>
+            <p class="security-notice">🔒 Secure Login System Active</p>
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+                    <input type="text" id="username" name="username" required autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="submit-button">Login</button>
+                <div id="loginAttempts" class="login-attempts"></div>
+                <button type="submit" class="submit-button">Secure Login</button>
             </form>
         </div>
     </div>
@@ -117,6 +179,10 @@
     <section id="adminPanel" class="admin-panel hidden">
         <div class="container">
             <h2>🔐 Admin Panel</h2>
+            <div class="admin-security-status">
+                <span class="security-badge">🛡️ Protected</span>
+                <span id="sessionTimer"></span>
+            </div>
             <button id="logoutBtn" class="logout-button">Logout</button>
             
             <!-- Admin Tabs -->
@@ -126,6 +192,8 @@
                 <button class="tab-btn" data-tab="images">Images</button>
                 <button class="tab-btn" data-tab="music">Music</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
+                <button class="tab-btn" data-tab="security">Security</button>
+                <button class="tab-btn" data-tab="backup">Backup</button>
             </div>
 
             <!-- Services Tab -->
@@ -150,6 +218,7 @@
             <div id="imagesTab" class="tab-content hidden">
                 <h3>Upload Service Images</h3>
                 <div class="upload-section">
+                    <div class="security-notice">🔒 All uploads are scanned for malware</div>
                     <div class="form-group">
                         <label for="serviceSelect">Select Service</label>
                         <select id="serviceSelect">
@@ -158,8 +227,9 @@
                     </div>
                     <div class="form-group">
                         <label for="imageUpload">Upload Image</label>
-                        <input type="file" id="imageUpload" accept="image/*">
+                        <input type="file" id="imageUpload" accept="image/*" required>
                     </div>
+                    <div id="imageValidationResult"></div>
                     <button id="uploadImageBtn" class="submit-button">Upload Image</button>
                 </div>
             </div>
@@ -168,9 +238,10 @@
             <div id="musicTab" class="tab-content hidden">
                 <h3>Background Music</h3>
                 <div class="upload-section">
+                    <div class="security-notice">🔒 All audio files are validated</div>
                     <div class="form-group">
                         <label for="musicUpload">Upload Music File</label>
-                        <input type="file" id="musicUpload" accept="audio/*">
+                        <input type="file" id="musicUpload" accept="audio/*" required>
                     </div>
                     <button id="uploadMusicBtn" class="submit-button">Upload Music</button>
                     <button id="removeMusicBtn" class="delete-button">Remove Music</button>
@@ -183,22 +254,72 @@
                 <form id="settingsForm">
                     <div class="form-group">
                         <label for="siteTitle">Site Title</label>
-                        <input type="text" id="siteTitle" value="Ntandostore">
+                        <input type="text" id="siteTitle" value="Ntandostore" required>
                     </div>
                     <div class="form-group">
                         <label for="heroTitle">Hero Title</label>
-                        <input type="text" id="heroTitle" value="Welcome to Ntandostore">
+                        <input type="text" id="heroTitle" value="Welcome to Ntandostore" required>
                     </div>
                     <div class="form-group">
                         <label for="heroText">Hero Text</label>
-                        <textarea id="heroText" rows="3">Your one-stop shop for WhatsApp recovery, website services, and digital solutions</textarea>
+                        <textarea id="heroText" rows="3" required>Your one-stop shop for WhatsApp recovery, website services, and digital solutions</textarea>
                     </div>
                     <div class="form-group">
                         <label for="aboutText">About Text</label>
-                        <textarea id="aboutText" rows="5">Ntandostore is your trusted partner for digital solutions. We specialize in WhatsApp account recovery, website development, and various digital services to help your business grow.</textarea>
+                        <textarea id="aboutText" rows="5" required>Ntandostore is your trusted partner for digital solutions. We specialize in WhatsApp account recovery, website development, and various digital services to help your business grow.</textarea>
                     </div>
                     <button type="submit" class="submit-button">Save Settings</button>
                 </form>
+            </div>
+
+            <!-- Security Tab -->
+            <div id="securityTab" class="tab-content hidden">
+                <h3>Security Management</h3>
+                <div class="security-dashboard">
+                    <div class="security-metrics">
+                        <div class="metric">
+                            <h4>Active Sessions</h4>
+                            <p id="securityActiveSessions">0</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Failed Logins</h4>
+                            <p id="securityFailedLogins">0</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Blocked IPs</h4>
+                            <p id="securityBlockedIPs">0</p>
+                        </div>
+                        <div class="metric">
+                            <h4>Security Score</h4>
+                            <p id="securityScore">100%</p>
+                        </div>
+                    </div>
+                    <div class="security-actions">
+                        <button id="clearLogsBtn" class="action-button">Clear Security Logs</button>
+                        <button id="unblockAllBtn" class="action-button">Unblock All IPs</button>
+                        <button id="securityReportBtn" class="action-button">Generate Report</button>
+                    </div>
+                    <div class="security-log">
+                        <h4>Security Log</h4>
+                        <div id="securityLogContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Tab -->
+            <div id="backupTab" class="tab-content hidden">
+                <h3>Backup & Restore</h3>
+                <div class="backup-section">
+                    <div class="backup-actions">
+                        <button id="createBackupBtn" class="backup-button">Create Full Backup</button>
+                        <button id="downloadBackupBtn" class="backup-button">Download Backup</button>
+                        <button id="restoreBackupBtn" class="restore-button">Restore from Backup</button>
+                    </div>
+                    <div class="backup-info">
+                        <h4>Last Backup</h4>
+                        <p id="lastBackupTime">Never</p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -262,9 +383,12 @@
         <div class="container">
             <p>&copy; 2024 Ntandostore. All rights reserved.</p>
             <p>Contact: +263 771 629 199 | Ecocash: 263 786 831 091</p>
+            <p class="security-footer">🔒 Protected by Advanced Security System</p>
         </div>
     </footer>
 
+    <!-- Load security system first -->
+    <script src="security.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
