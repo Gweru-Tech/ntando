@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ntandostore - WhatsApp Recovery & Digital Services</title>
+    <link rel="stylesheet" href="style.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <!-- Background Music Player -->
+    <audio id="bgMusic" loop>
+        <source src="" type="audio/mp3">
+    </audio>
+    <button id="musicToggle" class="music-toggle">🎵 Music</button>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>🛒 Ntandostore</h1>
+            <p>Your Digital Solutions Partner</p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#admin" id="adminLink">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <h2>Welcome to Ntandostore</h2>
+            <p>Your one-stop shop for WhatsApp recovery, website services, and digital solutions</p>
+            <a href="#services" class="cta-button">View Services</a>
+        </div>
+    </section>
+
+    <!-- Advertisement Section -->
+    <section id="ads" class="ads-section">
+        <div class="container">
+            <div id="adsContainer">
+                <!-- Ads will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="container">
+            <h2>Our Services</h2>
+            <div class="services-grid" id="servicesGrid">
+                <!-- Services will be loaded dynamically -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Us</h2>
+            <p>Ntandostore is your trusted partner for digital solutions. We specialize in WhatsApp account recovery, website development, and various digital services to help your business grow.</p>
+            <p>Owner: <strong>Ntandoyenkosi Chisaya</strong></p>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <h3>👤 Owner</h3>
+                    <p>Ntandoyenkosi Chisaya</p>
+                </div>
+                <div class="contact-item">
+                    <h3>📱 WhatsApp & Calls</h3>
+                    <p>+263 771 629 199</p>
+                    <a href="https://wa.me/263771629199" class="contact-button">WhatsApp Us</a>
+                </div>
+                <div class="contact-item">
+                    <h3>💰 Ecocash</h3>
+                    <p>263 786 831 091</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="submit-button">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <section id="adminPanel" class="admin-panel hidden">
+        <div class="container">
+            <h2>🔐 Admin Panel</h2>
+            <button id="logoutBtn" class="logout-button">Logout</button>
+            
+            <!-- Admin Tabs -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="services">Services</button>
+                <button class="tab-btn" data-tab="ads">Ads</button>
+                <button class="tab-btn" data-tab="images">Images</button>
+                <button class="tab-btn" data-tab="music">Music</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Services Tab -->
+            <div id="servicesTab" class="tab-content active">
+                <h3>Manage Services</h3>
+                <button id="addServiceBtn" class="add-button">+ Add New Service</button>
+                <div id="adminServicesList" class="admin-list">
+                    <!-- Services list will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Ads Tab -->
+            <div id="adsTab" class="tab-content hidden">
+                <h3>Manage Ads</h3>
+                <button id="addAdBtn" class="add-button">+ Add New Ad</button>
+                <div id="adminAdsList" class="admin-list">
+                    <!-- Ads list will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Images Tab -->
+            <div id="imagesTab" class="tab-content hidden">
+                <h3>Upload Service Images</h3>
+                <div class="upload-section">
+                    <div class="form-group">
+                        <label for="serviceSelect">Select Service</label>
+                        <select id="serviceSelect">
+                            <!-- Services will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageUpload">Upload Image</label>
+                        <input type="file" id="imageUpload" accept="image/*">
+                    </div>
+                    <button id="uploadImageBtn" class="submit-button">Upload Image</button>
+                </div>
+            </div>
+
+            <!-- Music Tab -->
+            <div id="musicTab" class="tab-content hidden">
+                <h3>Background Music</h3>
+                <div class="upload-section">
+                    <div class="form-group">
+                        <label for="musicUpload">Upload Music File</label>
+                        <input type="file" id="musicUpload" accept="audio/*">
+                    </div>
+                    <button id="uploadMusicBtn" class="submit-button">Upload Music</button>
+                    <button id="removeMusicBtn" class="delete-button">Remove Music</button>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content hidden">
+                <h3>General Settings</h3>
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="siteTitle">Site Title</label>
+                        <input type="text" id="siteTitle" value="Ntandostore">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroTitle">Hero Title</label>
+                        <input type="text" id="heroTitle" value="Welcome to Ntandostore">
+                    </div>
+                    <div class="form-group">
+                        <label for="heroText">Hero Text</label>
+                        <textarea id="heroText" rows="3">Your one-stop shop for WhatsApp recovery, website services, and digital solutions</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="aboutText">About Text</label>
+                        <textarea id="aboutText" rows="5">Ntandostore is your trusted partner for digital solutions. We specialize in WhatsApp account recovery, website development, and various digital services to help your business grow.</textarea>
+                    </div>
+                    <button type="submit" class="submit-button">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Modal (Add/Edit) -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="serviceModalTitle">Add New Service</h2>
+            <form id="serviceForm">
+                <div class="form-group">
+                    <label for="serviceName">Service Name</label>
+                    <input type="text" id="serviceName" name="serviceName" required>
+                </div>
+                <div class="form-group">
+                    <label for="servicePrice">Price</label>
+                    <input type="text" id="servicePrice" name="servicePrice" required>
+                </div>
+                <div class="form-group">
+                    <label for="serviceDescription">Description</label>
+                    <textarea id="serviceDescription" name="serviceDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="serviceImage">Image URL</label>
+                    <input type="text" id="serviceImage" name="serviceImage" placeholder="https://example.com/image.jpg">
+                </div>
+                <button type="submit" class="submit-button">Save Service</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ad Modal (Add/Edit) -->
+    <div id="adModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="adModalTitle">Add New Ad</h2>
+            <form id="adForm">
+                <div class="form-group">
+                    <label for="adTitle">Ad Title</label>
+                    <input type="text" id="adTitle" name="adTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="adText">Ad Text</label>
+                    <textarea id="adText" name="adText" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="adLink">Link URL (optional)</label>
+                    <input type="text" id="adLink" name="adLink">
+                </div>
+                <div class="form-group">
+                    <label for="adImage">Image URL (optional)</label>
+                    <input type="text" id="adImage" name="adImage" placeholder="https://example.com/image.jpg">
+                </div>
+                <button type="submit" class="submit-button">Save Ad</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Ntandostore. All rights reserved.</p>
+            <p>Contact: +263 771 629 199 | Ecocash: 263 786 831 091</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

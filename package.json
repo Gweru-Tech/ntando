@@ -1,0 +1,21 @@
+{
+  "name": "ntandostore",
+  "version": "1.0.0",
+  "description": "Ntandostore - WhatsApp Recovery & Digital Services Website",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "whatsapp",
+    "recovery",
+    "digital-services",
+    "website"
+  ],
+  "author": "Ntandoyenkosi Chisaya",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
